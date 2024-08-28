@@ -1,0 +1,11 @@
+[
+    {
+        "faultName": "PodFailure",
+        "vendor": 193,
+        "code": 10027009,
+        "defaultSeverity": "Major",
+        "defaultDescription": "Pod failure was detected in SC deployment",
+        "category": "Other",
+        "specificProblem": "SC, Pod Fault"
+    }
+]

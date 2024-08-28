@@ -1,0 +1,10 @@
+productName: "eric-sc-hcagent"
+productNumber: "CXD 101 0987"
+images:
+  hcagent:
+    productName: "eric-sc-hcagent Image"
+    productNumber: "CXU 101 1658"
+    registry: "armdocker.rnd.ericsson.se"
+    repoPath: hcagent_repo_path
+    name: "eric-sc-hcagent"
+    tag: hcagent_image_tag

@@ -1,0 +1,24 @@
+{{- if eq (include "eric-sc-hcagent.tls" .) "true" }}
+apiVersion: siptls.sec.ericsson.com/v1
+kind: InternalCertificate
+metadata:
+  name: {{ template "eric-sc-hcagent.name" . }}-alarmhandler-client-certificate
+  annotations:
+{{- include "eric-sc-hcagent.helm-annotations" . | indent 4 }}
+{{- include "eric-sc-hcagent.config-annotations" . | indent 4 }}
+  labels:
+{{- include "eric-sc-hcagent.labels" . | indent 4 }}
+spec:
+  kubernetes:
+    generatedSecretName: {{ template "eric-sc-hcagent.name" . }}-alarmhandler-client-certificate
+    certificateName: tls.crt
+    privateKeyName: tls.key
+  certificate:
+    subject:
+      cn: {{ template "eric-sc-hcagent.name" . }}
+    issuer:
+      reference: {{ .Values.adp.fh.alarmhandler.hostname }}-fi-server-client-ca
+    extendedKeyUsage:
+      tlsClientAuth: true
+      tlsServerAuth: false
+{{- end }}

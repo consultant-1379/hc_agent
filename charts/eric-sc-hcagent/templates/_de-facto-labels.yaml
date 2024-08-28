@@ -1,0 +1,5 @@
+{{- define "eric-sc-hcagent.de-facto-labels" }}
+app.kubernetes.io/name: {{ template "eric-sc-hcagent.name" . }}
+app.kubernetes.io/version: {{ template "eric-sc-hcagent.version" . }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
+{{- end}}

@@ -1,0 +1,525 @@
+modelVersion: 2.0
+
+docker-images:
+  # in ADP GS environment use the 'latest' tag, as testing may contain potentially
+  # unstable/not tested content
+  - adp-release-auto: ${common.adp-release-auto}
+  # - asciidoc-builder: ${common.docker-cicd-drop-repo}/bob-asciidocbuilder:1.0.0-18
+  - adp-helm-dr-check: ${common.adp-helm-dr-check}
+  - doc-builder: ${common.docker-cicd-drop-repo}/bob-docbuilder:2.4.1-1
+  # - k8-test: ${common.docker-cicd-drop-repo}/bob-py3kubehelmbuilder:latest
+  # - go-builder: ${common.docker-cicd-drop-repo}/bob-gobuilder.adp-base-os:4.46.0
+  # Image for Shell script lint
+  - sh-builder: ${common.docker-cicd-drop-repo}/bob-shbuilder:2.1.0-0
+  # - trivy-inline-scan: ${common.docker-cicd-drop-repo}/trivy-inline-scan:latest
+  - image-dr-check: ${common.image-dr-check}
+  # - va-scan-kubesec: ${common.docker-cicd-drop-repo}/va-scan-kubesec:latest
+  # - va-scan-kubeaudit: ${common.docker-cicd-drop-repo}/va-scan-kubeaudit:latest
+  # - va-scan-kubehunter: ${common.docker-cicd-drop-repo}/va-scan-kubehunter:latest
+  - hadolint-scan: ${common.docker-cicd-drop-repo}/hadolint-scan:latest
+  # - adp-grype-scanner: ${common.docker-cicd-drop-repo}/va-image-scanning-grype:latest
+  # - yang-tool: ${common.yang-tool}
+  - java-maven-builder: ${common.docker-cicd-drop-repo}/bob-java17mvnbuilder:1.9.0 #bob-java11mvnbuilder.adp-base-os:1.38.0
+  - py3kubehelmbuilder: ${common.py3kubehelmbuilder}
+  - helm-builder-py3: armdocker.rnd.ericsson.se/sandbox/adp-staging/adp-cicd/bob-py3kubehelmbuilder:1.15.2-8
+
+import:
+  common: common-properties.yaml
+
+properties:
+  - image-dev-repopath: proj-sc-hcagent-dev
+  - image-ci-repopath: proj-sc-hcagent-internal
+  - image-full-name: ${common.image-registry}/${common.image-drop-repopath}/${common.docker-image-name}
+  # - initcontainer-full-name: ${common.image-registry}/${common.image-drop-repopath}/${common.docker-initcontainer-name}
+  - helm-chart-dev-repopath: proj-sc-hcagent-dev-helm
+  - helm-chart-ci-repopath: proj-sc-hcagent-internal-helm
+  - helm-chart-drop-repo: ${common.helm-chart-repo-server}/${common.helm-chart-drop-repopath}
+  - helm-chart-file-name: ${common.helm-chart-name}-${var.version}.tgz
+  - cbo-hardening-script-url: https://arm.sero.gic.ericsson.se/artifactory/proj-ldc-repo-rpm-local/common_base_os/hardening/
+  - cbo-hardening-script-archive: common-base-os-hardening-cxa301047-${common.image-base-os-version}.tar.gz
+  # - doc-arm-dev-path: proj-adp-ref-app-docs-dev-generic-local
+  # - structure-data-file: ${env.PWD}/${common.structure-output-dir}/${common.helm-chart-name}-structured-data.json
+  # - structure-data-file-location: ${common.helm-chart-repo-server}/${doc-arm-dev-path}/documents/${common.helm-chart-name}-structured-data.json
+  # - k8-install-upgrade: catfacts-install-upgrade
+  # - k8-nmap-patch: catfacts-nmap-patch
+  # - k8-nmap-va: catfacts-nmap-va
+  # - k8-defensics-va: catfacts-defensics-va
+  # - k8-zap-va: catfacts-zap-va
+  # - system-test-from-version: 1.211.0-1
+  # - docker-params: "
+      # --volume ${env.PWD}/src:/opt/go/src/adp-ref-catfacts-text-analyzer \
+      # --workdir /opt/go/src/adp-ref-catfacts-text-analyzer \
+      # --env GOBIN=/opt/go/src/adp-ref-catfacts-text-analyzer/build/bin \
+      # --env GOCACHE=/opt/go/src/adp-ref-catfacts-text-analyzer/build/cache \
+      # --env GOPATH=/opt/go/src/adp-ref-catfacts-text-analyzer/build/go \
+      # --env CGO_ENABLED=0 \
+      # --env GOFLAGS=-modcacherw \
+      # --env GOPRIVATE=gerrit.ericsson.se/adp-ref-app"
+  # - golangci-lint-config-yml: .golangci.yml
+  # - golang-ldflags: "-w -s -X main.Version=${var.version} -extldflags '-static'"
+  # - fossa-report-name: fossa-report.json
+  - image-to-scan: ${image-full-name}:${var.version}
+  # - trivy-image: ${common.docker-cicd-drop-repo}/trivy-inline-scan:latest
+  # - tenable-sc-report: https://arm.sero.gic.ericsson.se/artifactory/proj-${common.helm-chart-name}-va-generic-local/tenablesc-reports/1.0.0/${common.helm-chart-name}-tenablesc-report.csv
+  - jenkins-server: https://fem1s10-eiffel029.eiffel.gic.ericsson.se:8443/
+  # - credential-id-sandbox: munin-token-sandbox
+  # - credential-id-prod: munin-token-production
+  # Directory for the User Guide (UG) Markdown fragments generated from structured data modules
+  # - generated-ug-fragments-dir: ${env.PWD}/doc/CTA_User_Guide/fragments/.generated
+  # stdout redirect version
+  # - stdout-version: ${common.stdout-version}
+  # - stdout-name: eric-log-libstdout-redirect-golang-cxa30176
+  # - stdout-download-url: https://arm.seli.gic.ericsson.se/artifactory/proj-adp-log-release/com/ericsson/bss/adp/log/stdout-redirect/
+  - HELM_VERSION_HELMBUILDERPY3: 3.4.2
+
+  - CBOS_VERSION: ${common.image-base-os-version}
+  - CBOS_PATH: cbos
+
+  # This CBOS image consists of:
+  # SC_CBOS       : Micro CBOS + Java + Openssl - Suitable for running most of our java-based pods
+  - SC_CBOS_IMG_NAME: sc-sles
+  - SC_CBOS_IMG: ${ARM_DOCKER_REGISTRY}/${CBOS_PATH}/${SC_CBOS_IMG_NAME}
+
+  - ARM_DOCKER_REGISTRY: ${common.image-registry}/${DOCKER_REPO_PATH}
+  - DOCKER_REPO_PATH: proj-5g-bsf
+
+  - OUTPUT_DIR: .bob
+  
+env:
+  # - ADP_PORTAL_API_KEY
+  - PWD
+  # - KUBECONFIG (default=notset)
+  - HELM_USER
+  - HELM_TOKEN
+  # - GERRIT_PATCHSET_REVISION (default=HEAD)
+  - GERRIT_USERNAME
+  - GERRIT_PASSWORD
+  # - JENKINS_USERNAME
+  # - JENKINS_PASSWORD
+  # - JIRA_USERNAME
+  # - JIRA_PASSWORD
+  # - ERIDOC_USERNAME
+  # - ERIDOC_PASSWORD
+  # - XRAY_USER
+  # - XRAY_TOKEN
+  - USER
+  # - FOSSA_API_KEY
+  # - BAZAAR_USER
+  # - BAZAAR_TOKEN
+  # - BAZAAR_SVL
+    # Common Base OS Image Tag for baseline update
+  # - IMAGE_TAG
+  # - HUDSON_URL (default=https://fem9s10-eiffel007.eiffel.gic.ericsson.se:8443/jenkins)
+  # - IMAGE_PULL_SECRET_JSON
+  - ENABLE_HELM_V3 (default=true)
+  # - MUNIN_TOKEN
+  # - MUNIN_TOKEN_SANDBOX
+  # - PRI_PREPARED (default=adpauto)
+  # - PRI_APPROVER (default="Avinash Hota (ezhotav)")
+  # - TLS_CERTIFICATE
+  # - TLS_KEY
+  # - DEFENSICS_HOME
+  # - VHUB_API_TOKEN
+  # - EVMS_API_KEY
+  # - EVMS_USERNAME (default="adpenb1")
+  # - ARM_USER
+  # - ARM_LOGSTDOUT_TOKEN (default="notused")
+  - ARM_CBOS_TOKEN
+  - SPEED (default="slow")
+  - HOME
+  - KUBE_HOST
+  - HUDSON_URL (default=https://fem1s10-eiffel029.eiffel.gic.ericsson.se:8443/jenkins)
+  
+var:
+  - version
+  - semver
+  - branch
+  - rstate
+  - commithash
+  # - sha256-helm
+  # - sha256-image
+  # - sha256-initcontainer
+  - image-repopath-internal
+  - image-full-name-internal
+  # - initcontainer-full-name-internal
+  - helm-chart-repo-internal
+  # - pri_params
+  - helm-dr-vm-args
+  - image-dr-vm-args
+  - cbos-version
+  - cbos-semver
+  - mvn-args
+  - committer_name
+  - committer_email
+  
+default-rules:
+  - clean
+  - init-dev
+  - lint
+  - generate-docs
+  - build
+  - image
+  - package
+  #- k8s-test
+  
+rules:
+
+  release:
+    - rule: clean
+    - rule: init-dev
+    - rule: lint
+    - rule: build
+    - rule: image
+    - rule: package
+    - rule: publish
+    
+  init:
+    - rule: init-dev
+    - rule: common.init-cbos
+    
+  generate:
+    - rule: common.init-cbos
+    
+  # Make sure repo is clean
+  clean:
+    - task: rm
+      cmd:
+        - rm -rf .bob/
+        - rm -rf .m2/repository/
+    - task: clean-maven
+      docker-image: java-maven-builder
+      cmd: /bin/bash -c "mvn --no-transfer-progress -s maven-common-resources/settings.xml -Duser.home=. clean"
+ 
+  common-init:
+    - task: set-mvn-args
+      cmd: /bin/bash -c "if [ \"${env.SPEED}\" == \"fast\" ];
+                         then
+                            echo \"-DskipTests -Djacoco.skip=true\" > .bob/var.mvn-args;
+                         else
+                            echo > .bob/var.mvn-args;
+                         fi;"
+    - task: committer-name
+      description: Extract last commiter name excluding eiffel users
+      cmd: sh -c 'git log --format="%cN" | grep -v eiffel | head -1 > .bob/var.committer_name'
+    - task: committer-email
+      description: Extract last commiter email excluding eiffel users
+      cmd: sh -c 'git log --format="%cE" | grep -v eiffel | head -1 > .bob/var.committer_email'
+
+  init-dev:
+    - rule: common-init
+    - task: version
+      docker-image: adp-release-auto
+      cmd:
+        - version-handler generate
+          --is-release false
+          --output version
+          --git-repo-path .
+          --user ${env.USER}
+        - sed 's/\(.*\)-.*/\1/' .bob/var.version > .bob/var.semver
+    - task: rstate
+      docker-image: adp-release-auto
+      cmd: get_rstate.py ${var.version} > .bob/var.rstate
+    - task: commit
+      docker-image: adp-release-auto
+      cmd: git rev-parse --short HEAD > .bob/var.commithash
+    - task: get-branch
+      docker-image: adp-release-auto
+      cmd: git rev-parse --abbrev-ref HEAD > .bob/var.branch
+    - task: image-repopath-internal
+      cmd: echo "${image-dev-repopath}" > .bob/var.image-repopath-internal
+    - task: image-full-name-internal
+      cmd: echo "${common.image-registry}/${image-dev-repopath}/${common.docker-image-name}" > .bob/var.image-full-name-internal
+    - task: helm-chart-repo-internal
+      cmd: echo "${common.helm-chart-repo-server}/${helm-chart-dev-repopath}" > .bob/var.helm-chart-repo-internal
+    - task: helm-dr-vm-args
+      cmd: echo "-DhelmDesignRule.config.eric-sc-hcagent.DR-D470217-001=disable\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1126-030=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-050=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-051=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-059=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1121-060=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1120-060=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1120-067=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1120-080=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1121-102=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1121-104=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1121-106=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1123-115=skip\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1123-125=disable\
+           -DhelmDesignRule.config.eric-sc-manager.DR-D1123-127=skip" > .bob/var.helm-dr-vm-args
+    - task: image-dr-vm-args
+      cmd: echo " -DimageDesignRule.config.DR-D1123-122=disable -DimageDesignRule.config.DR-D470203-041-A=disable -DimageDesignRule.config.DR-D470203-050-A=disable" > .bob/var.image-dr-vm-args
+    - rule: common.init-cbos
+
+  init-precodereview:
+    - rule: common-init
+    - task: version
+      docker-image: adp-release-auto
+      cmd:
+        - version-handler generate
+          --is-release false
+          --output version
+          --git-repo-path .
+        - sed 's/\(.*\)-.*/\1/' .bob/var.version > .bob/var.semver
+    - task: rstate
+      docker-image: adp-release-auto
+      cmd: get_rstate.py ${var.version} > .bob/var.rstate
+    - task: commit
+      docker-image: adp-release-auto
+      cmd: git rev-parse --short HEAD > .bob/var.commithash
+    - task: get-branch
+      docker-image: adp-release-auto
+      cmd: git rev-parse --abbrev-ref HEAD > .bob/var.branch
+    - task: image-repopath-internal
+      cmd: echo "${image-ci-repopath}" > .bob/var.image-repopath-internal
+    - task: image-full-name-internal
+      cmd: echo "${common.image-registry}/${image-ci-repopath}/${common.docker-image-name}" > .bob/var.image-full-name-internal
+    - task: helm-chart-repo-internal
+      cmd: echo "${common.helm-chart-repo-server}/${helm-chart-ci-repopath}" > .bob/var.helm-chart-repo-internal
+    - task: set-upload
+      cmd: echo "--debug" > .bob/var.pri_params
+    - task: helm-dr-vm-args
+      cmd: echo "-DhelmDesignRule.config.eric-sc-hcagent.DR-D470217-001=disable\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1126-030=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-050=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-051=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1125-059=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1121-060=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1120-060=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1120-067=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1120-080=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1121-102=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1121-104=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1121-106=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1123-115=skip\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1123-125=disable\
+           -DhelmDesignRule.config.eric-sc-hcagent.DR-D1123-127=skip" > .bob/var.helm-dr-vm-args
+    - task: image-dr-vm-args
+      cmd: echo " -DimageDesignRule.config.DR-D1123-122=disable -DimageDesignRule.config.DR-D470203-041-A=disable -DimageDesignRule.config.DR-D470203-050-A=disable" > .bob/var.image-dr-vm-args
+    - rule: common.init-cbos
+    
+  init-drop:
+    - rule: common-init
+    - task: version
+      docker-image: adp-release-auto
+      cmd:
+        - version-handler generate
+          --is-release true
+          --output version
+          --git-repo-path .
+        - sed 's/\(.*\)-.*/\1/' .bob/var.version > .bob/var.semver
+    - task: rstate
+      docker-image: adp-release-auto
+      cmd: get_rstate.py ${var.version} > .bob/var.rstate
+    - task: commit
+      docker-image: adp-release-auto
+      cmd: git rev-parse --short HEAD > .bob/var.commithash
+    - task: get-branch
+      docker-image: adp-release-auto
+      cmd: git rev-parse --abbrev-ref HEAD > .bob/var.branch
+    - task: image-repopath-internal
+      cmd: echo "${image-ci-repopath}" > .bob/var.image-repopath-internal
+    - task: image-full-name-internal
+      cmd: echo "${common.image-registry}/${image-ci-repopath}/${common.docker-image-name}" > .bob/var.image-full-name-internal
+    - task: helm-chart-repo-internal
+      cmd: echo "${common.helm-chart-repo-server}/${helm-chart-ci-repopath}" > .bob/var.helm-chart-repo-internal
+    - task: adp-artifacts-properties
+      docker-image: adp-release-auto
+      cmd: generate-adp-artifacts
+        --chart-name ${common.helm-chart-name}
+        --chart-version ${var.version}
+        --chart-repo ${helm-chart-drop-repo}
+    - rule: common.init-cbos
+
+  lint:
+    - task: markdownlint
+      docker-image: doc-builder
+      cmd: markdownlint --config /etc/markdownlint-cli/adp.yaml $(git ls-files -- \*\.md | grep -v vendor | cat | xargs)
+    - task: helm
+      docker-image: adp-release-auto
+      cmd: helm lint charts/${common.helm-chart-name}
+    - task: helm-chart-check
+      docker-image: adp-helm-dr-check
+      #cmd: echo "skip helm-dr-checker actions"
+      cmd: helm-dr-check
+        ${var.helm-dr-vm-args}
+        --helm-chart charts/${common.helm-chart-name}
+        --output build/helm-dr-check/
+        --helm-v3 || true
+    - task: shellcheck
+      docker-image: sh-builder
+      cmd: echo "skip shell script actions"
+      #cmd: shellcheck -x --shell bash $(git ls-files | awk '/.sh$/ && ! /vendor/ && ! /github/')
+      # If anonymous read access is disabled, see documentation for how to pass credentials
+    - task: jenkins-lint
+      docker-image: adp-release-auto
+      cmd: jenkins-lint --server ${env.HUDSON_URL} --username "${env.GERRIT_USERNAME}" --password "${env.GERRIT_PASSWORD}" $(git ls-files | grep jenkinsfile)
+    - task: hadolint-scan-test
+      docker-image: hadolint-scan
+      docker-flags:
+        - "--workdir /app/"
+      docker-mounts:
+        - "${env.PWD}/ci_config/hadolint_scan_config.yaml:/data/custom_config.yaml"
+        - "${env.PWD}/Dockerfile:/data/Dockerfile-hcagent"
+        - "${env.PWD}/.bob/hadolint-reports:/tmp/reports/"
+      cmd: -p eric-sc-hcagent -f /data/Dockerfile-hcagent -c /data/custom_config.yaml
+
+  # Build and scan source code
+  build:
+    - task: build
+      docker-image: java-maven-builder
+      cmd:
+        - mvn --no-transfer-progress -s maven-common-resources/settings.xml -Duser.home=. ${var.mvn-args} install 
+        - mvn --no-transfer-progress -s maven-common-resources/settings.xml -Duser.home=. sonar:sonar
+
+  # Build Docker images
+  image:
+    - task: pull-micro-cbos-image
+      cmd: docker pull ${SC_CBOS_IMG}:${CBOS_VERSION}
+    - task: docker-build-image
+      cmd: docker build ${env.PWD}
+        --file Dockerfile
+        --tag ${var.image-full-name-internal}:${var.version}
+        --build-arg DOCKER_BASE_IMG=${SC_CBOS_IMG}
+        --build-arg DOCKER_CBOS_VERSION=${CBOS_VERSION}
+        --label com.ericsson.product-number="${common.image-product-number}"
+        --label org.opencontainers.image.title="${common.service-name} Image"
+        --label org.opencontainers.image.created=`date -u +%FT%TZ`
+        --label org.opencontainers.image.revision=${var.commithash}
+        --label org.opencontainers.image.vendor="Ericsson"
+        --label org.opencontainers.image.version=${var.version}
+
+  # Push images to ci-internal repo and create local version of helm chart
+  package:
+    - task: image-push-internal
+      cmd: docker push ${var.image-full-name-internal}:${var.version}
+    - task: package-helm-internal
+      docker-image: adp-release-auto
+      docker-envs:
+        - HELM_USER
+        - HELM_TOKEN
+        - ENABLE_HELM_V3
+      cmd: helm-package
+        --folder charts/${common.helm-chart-name}
+        --workdir .bob/helm_chart/
+        --output .bob/helm_chart/${common.helm-chart-name}-internal
+        --version ${var.version}
+        --replace eric-product-info.yaml:hcagent_repo_path=${var.image-repopath-internal}
+        --replace eric-product-info.yaml:hcagent_image_tag=${var.version}
+      
+  publish-to-internal:
+    - task: helm-upload-internal
+      docker-image: adp-release-auto
+      docker-envs:
+        - HELM_USER
+        - HELM_TOKEN
+      cmd: upload_file.sh
+        --filename=.bob/helm_chart/${common.helm-chart-name}-internal/${helm-chart-file-name}
+        --repository=${var.helm-chart-repo-internal}/${common.helm-chart-name}
+        --api-token=${env.HELM_TOKEN}
+
+  # Publish docker images and helm charts to drop(ARM) repositories
+  # Call publish only when merged to master
+  publish:
+    - task: package-helm-public
+      docker-image: adp-release-auto
+      docker-envs:
+        - HELM_USER
+        - HELM_TOKEN
+        - ENABLE_HELM_V3
+      cmd: helm-package
+        --folder charts/${common.helm-chart-name}
+        --workdir .bob
+        --output .bob
+        --version ${var.version}
+        --replace eric-product-info.yaml:hcagent_repo_path=${common.image-drop-repopath}
+        --replace eric-product-info.yaml:hcagent_image_tag=${var.version}
+    - task: image-pull-internal
+      cmd:
+       - docker pull ${var.image-full-name-internal}:${var.version}
+    - task: image-tag-public
+      cmd:
+       - docker tag ${var.image-full-name-internal}:${var.version} ${image-full-name}:${var.version}
+    - task: image-push-public
+      cmd:
+       - docker push ${image-full-name}:${var.version}
+    - task: git-tag
+      docker-image: adp-release-auto
+      docker-envs:
+        - GERRIT_USERNAME
+        - GERRIT_PASSWORD
+      cmd: version-handler create-git-tag
+           --git-repo-url ${common.git-clone-url}
+           --tag ${var.version}
+           --message "Release ${var.version}"
+           --commitid ${var.commithash}
+           --debug
+    - task: helm-upload
+      docker-image: adp-release-auto
+      docker-envs:
+        - HELM_USER
+        - HELM_TOKEN
+        - ENABLE_HELM_V3
+      cmd: upload_file.sh
+        --filename=.bob/${helm-chart-file-name}
+        --repository=${helm-chart-drop-repo}/${common.helm-chart-name}
+        --api-token=${env.HELM_TOKEN}
+
+  # Run ADP container image design rule checker
+  image-dr-check:
+    - task: check-image-dr
+      docker-image: image-dr-check
+      docker-in-docker: socket
+      cmd: "image-dr-check
+        --image ${var.image-full-name-internal}:${var.version}
+        --output build/image-dr-check/
+        ${var.image-dr-vm-args}"
+    - task: cbo-check
+      docker-image: adp-release-auto
+      docker-in-docker: socket
+      docker-envs:
+        - ARM_CBOS_TOKEN
+      cmd: "cbo-check
+        --debug
+        --image \"${var.image-full-name-internal}:${var.version}\"
+        --image \"${var.sidecar-full-name-internal}:${var.version}\"
+        --report build/image-dr-check/"
+      cmd: " "
+
+  helm-dr-check:
+    - task: helm-chart-check
+      docker-image: adp-helm-dr-check
+      #cmd: echo "skip helm-dr-checker actions"
+      cmd: helm-dr-check
+        ${var.helm-dr-vm-args}
+        --helm-chart charts/${common.helm-chart-name}
+        --output build/helm-dr-check/
+        --helm-v3 || true
+
+  foss:
+    - task: collect-mvn-dependencies
+      docker-image: helm-builder-py3
+      docker-flags:
+      - "--volume ~/:/files"
+      - "--volume $PWD:/hc_agent"
+      - "--workdir /hc_agent/fossReport/scripts"
+      cmd: /bin/bash -c './dependency-collector.py -dev /hc_agent'
+    - task: generate-report
+      docker-image: helm-builder-py3
+      docker-flags:
+      - "--volume ~/:/files"
+      - "--volume $PWD:/hc_agent"
+      - "--workdir /hc_agent/fossReport"
+      cmd: /bin/bash -c 'pip3 install -Iv dpath==2.0.5 xlsxwriter==3.0.1; scripts/Report.py -fsc fossFiles_SC/ -xlsx -csv'
+
+  # Remove created/pulled microservice images
+  cleanup-images:
+    - task: remove-images
+      cmd:
+      - docker rmi --force ${var.image-full-name-internal}:${var.version} >/dev/null 2>&1
+      - docker rmi --force ${image-full-name}:${var.version} >/dev/null 2>&1
+      
+  help:
+    - task: me
+      docker-image: adp-release-auto
+      cmd: /bin/bash -c "helm-package --help; version-handler generate --help; version-handler create-git-tag --help"

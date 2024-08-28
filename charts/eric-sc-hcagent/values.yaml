@@ -1,0 +1,132 @@
+# eric-sc-hcagent configuration
+
+# global:
+  # networkPolicy:
+    # enabled: true
+  # pullSecret: ""
+  # registry:
+    # url: "armdocker.rnd.ericsson.se"
+    # imagePullSecret: IfNotPresent
+  # log:
+    # streamingMethod: "direct"  Supported values: "direct" or "indirect" or "dual"
+  # logShipper:
+    # deployment:
+      # type: "sidecar"
+
+networkPolicy:
+  enabled: true
+
+seccompProfile:
+  type: ""
+  localhostProfile: ""
+  hcagent:
+    type: ""
+    localhostProfile: ""
+
+# imageCredentials:
+  # pullSecret: # should NOT be SET according to DR-D1123-115
+  # hcagent:
+    # repoPath: # override image repository path according to DR-D1121-106
+    # registry:
+      # url: # override global registry url according to DR-D1121-104
+      # imagePullPolicy: # override global imagePullPolicy according to DR-D1121-102
+
+updateStrategy:
+  type: RollingUpdate
+
+spec:
+  hcagent:
+    tolerations:
+      - key: node.kubernetes.io/not-ready
+        operator: Exists
+        effect: NoExecute
+        tolerationSeconds: 0
+      - key: node.kubernetes.io/unreachable
+        operator: Exists
+        effect: NoExecute
+        tolerationSeconds: 0
+
+adp:
+  fh:
+    alarmhandler:
+      hostname: eric-fh-alarm-handler
+      tlsPort: 6006
+      port: 6005
+  log:
+    transformer:
+      hostname: eric-log-transformer
+
+resourceChecker:
+  podChecker:
+    faultName: "PodFailure"
+    resourceName: "SC"
+    serviceName: "ericsson-sc"
+
+jvm:
+  parameters:
+    hcagent: "-server -XX:+ErrorFileToStderr -XX:+UseG1GC -XX:MaxRAMPercentage=80 -Dcom.sun.management.jmxremote.port=1098 -Dcom.sun.management.jmxremote.rmi.port=1098 -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.host=127.0.0.1 -Dvertx.cacheDirBase=/vertx/vertx-cache -Dio.netty.native.workdir=/vertx"
+
+resources:
+  hcagent:
+    requests:
+      cpu: "50m"
+      memory: "300Mi"
+      ephemeral-storage: ""
+    limits:
+      cpu: "250m"
+      memory: "1Gi"
+      ephemeral-storage: ""
+  # Logshipper configured for an average throughput of 100logs/sec (covering the case of debug logs)
+  # Refer to the "Sidecar dimensioning recommendations" section of LogShipper
+  logshipper:
+    requests:
+      memory: "20Mi"
+      cpu: "33m"
+      ephemeral-storage: ""
+    limits:
+      memory: "100Mi"
+      cpu: "50m"
+      ephemeral-storage: ""
+
+export:
+  # Is a Time-To-Live value for the Alarm raised
+  alarmExpirationTimer: 60
+  # A timeout value when pod phase is stuck in pending status
+  pendingPhaseTimeout: 30
+  # An initial time to wait before start Health-Check
+  initialDelay: 400
+
+annotations: {}
+
+labels: {}
+
+log:
+  hcagent:
+    level: info
+  logshipper:
+    level: info
+
+## Log Shipper (as a sidecar) configuration
+## Used only if global.log.streamingMethod is "direct" or "dual"
+## Log Shipper also requires Log Transformer
+logShipper:
+  logLevel: "info"
+  storage:
+    path: "/logs"
+    size: "500Mi"
+    medium: "Ephemeral"
+  input:
+    files:
+    - enabled: true
+      paths:
+      - "hcagent.log"
+      multilines:
+      - "java"
+  output:
+    logTransformer:
+      enabled: true
+      host: eric-log-transformer
+
+severities:
+  configmaps: []
+

@@ -1,0 +1,189 @@
+modelVersion: 2.0
+
+docker-images:
+  # in ADP GS environment use the 'latest' tag, as testing may contain potentially
+  # unstable/not tested content
+  - adp-release-auto: ${common.adp-release-auto}
+  - cihelm: serodocker.sero.gic.ericsson.se/proj-pc-tools-released/cihelm:0.5.0
+  
+import:
+  common: common-properties.yaml
+  
+properties:
+    # Microservice drop helm chart repository
+  - helm-chart-drop-repo: ${common.helm-chart-repo-server}/${common.helm-chart-drop-repopath}
+    # Microservice released helm chart repository
+  - helm-chart-released-repo: ${common.helm-chart-repo-server}/proj-sc-hcagent-released-helm
+    # Released repository virtual helm repo (containing all released microservices)
+    # For a Generic Service this should be set to: https://arm.sero.gic.ericsson.se/artifactory/proj-adp-gs-released-helm/
+  - helm-chart-virtual-released-repo: ${common.helm-chart-repo-server}/proj-sc-hcagent-released-helm
+    # URL to released helm chart package
+  - helm-chart-artifact-url: ${helm-chart-released-repo}/${common.helm-chart-name}/${var.helmchart-file-name}
+    # Released docker ARM repo project name
+  - image-released-proj: proj-sc-hcagent-released
+    # Docker image drop path
+  - image-drop-path: armdocker.rnd.ericsson.se/${common.image-drop-repopath}/${common.docker-image-name}
+    # Microservice released docker images
+  - image-released-path: armdocker.rnd.ericsson.se/${image-released-proj}/${common.docker-image-name}:${env.RELEASE_CANDIDATE}
+    # GIT clone URL
+  - git-clone-url: https://gerrit.ericsson.se/MC_5G/hc_agent.git
+    # Tmp folder for released helm chart
+  - helm-chart-released-folder: '.bob/released-charts'
+  
+env:
+  - USER
+    # the name of branch where Git commit is merged
+  - BRANCH (default=master)
+    # the microservice release candidate version (e.g. 1.0.0-3)
+  - RELEASE_CANDIDATE
+    # type of release version update (e.g. MINOR, PATCH)
+  - VERSION_UPDATE (default=MINOR)
+    # the ARM functional user name for Helm repository
+  - HELM_USER
+    # the ARM functional user token for Helm repository (J-Frog ARM Token)
+  - HELM_TOKEN
+    # the GERRIT username
+  - GERRIT_USERNAME
+    # the GERRIT password (Gerrit HTTP password)
+  - GERRIT_PASSWORD
+    # Next VERSION_PREFIX value to set after PRA
+  - DRY_RUN (default=true)
+    # cihelm timers
+  - CIHELM_RETRY_TIMEOUT (default = 600)
+  - CIHELM_RETRY_SLEEP (default = 30)
+  - CIHELM_HTTP_RETRY (default = 10)
+    # committer email
+  - COMMITTER_EMAIL (default = eiffelesc-noreply@ericsson.com)
+  
+var:
+  - released-version
+  - semver
+  - helmchart-file-name
+  - next-version
+  
+rules:
+
+  # The rule cleans artifacts-properties
+  clean:
+    - task: tmp
+      cmd:
+        - rm -rf .bob/
+        - rm -rf .m2/repository/
+    - task: artifact-properties
+      cmd: rm -f artifact.properties
+        
+  # Generates the released version based on environment variable RELEASE_CANDIDATE
+  # Generates adp artifacts properties
+  init:
+    - task: generate-released-version
+      docker-image: adp-release-auto
+      cmd:
+        - version-handler convert-version
+          -s ${env.RELEASE_CANDIDATE} -o .bob/var.released-version
+        - cat .bob/var.released-version | cut -d '+' -f 1 > .bob/var.semver
+    - task: helmchart-file-name
+      cmd: echo ${common.helm-chart-name}-${var.released-version}.tgz > .bob/var.helmchart-file-name
+    - task: adp-artifacts-properties
+      docker-image: adp-release-auto
+      cmd: generate-adp-artifacts
+           --chart-name ${common.helm-chart-name}
+           --chart-version ${var.released-version}
+           --chart-repo ${helm-chart-released-repo}
+    - task: generate-service-name
+      cmd: echo ${common.service-name} > .bob/var.service-name
+    - rule: common.init-cbos
+
+  # Pull docker image and initcontainer from DROP repo and Publish in released
+  publish-released-docker-image:
+    - task: image-pull
+      cmd:
+       - docker pull ${image-drop-path}:${env.RELEASE_CANDIDATE}
+    - task: image-tag-released
+      cmd:
+       - docker tag ${image-drop-path}:${env.RELEASE_CANDIDATE} ${image-released-path}
+    - task: release-docker-image
+      cmd:
+       - docker push ${image-released-path}
+       
+  # The rule fetches release candidate (e.g. 1.0.0-3) helm chart from helm-chart-drop-repo,
+  # repackages with PRA release version (e.g. 1.0.0+3) and uploads it to released-artifacts-repo
+  publish-released-helm-chart:
+    - task: create-chart-folder
+      cmd: mkdir -p ${helm-chart-released-folder}
+    - task: fetch-chart
+      docker-image: cihelm
+      cmd:
+        --username ${env.HELM_USER}
+        --password ${env.HELM_TOKEN}
+        --retry-timeout '${env.CIHELM_RETRY_TIMEOUT}'
+        --retry-sleep '${env.CIHELM_RETRY_SLEEP}'
+        --http-retry '${env.CIHELM_HTTP_RETRY}'
+        fetch
+          --destination '${helm-chart-released-folder}'
+          '${common.helm-chart-name}'
+          '${env.RELEASE_CANDIDATE}'
+          '${helm-chart-drop-repo}'
+    - task: unpack-chart
+      cmd: tar -C '${helm-chart-released-folder}' -xzf '${helm-chart-released-folder}/${common.helm-chart-name}-${env.RELEASE_CANDIDATE}.tgz'
+    - task: generate-release-chart
+      docker-image: cihelm
+      cmd:
+        --username ${env.HELM_USER}
+        --password ${env.HELM_TOKEN}
+        --retry-timeout '${env.CIHELM_RETRY_TIMEOUT}'
+        --retry-sleep '${env.CIHELM_RETRY_SLEEP}'
+        --http-retry '${env.CIHELM_HTTP_RETRY}'
+        package
+          --destination '${helm-chart-released-folder}'
+          --version '${var.released-version}'
+          --replace eric-product-info.yaml:${common.image-drop-repopath}=${image-released-proj}
+          ${helm-chart-released-folder}/${common.helm-chart-name}
+    - task: release-helm-package
+      docker-image: adp-release-auto
+      docker-envs:
+        - HELM_USER
+        - HELM_TOKEN
+      cmd: upload_helm_package
+           --chart-filename "${helm-chart-released-folder}/${common.helm-chart-name}-${var.released-version}.tgz"
+           --chart-repo ${helm-chart-released-repo}
+           --helm-user ${env.HELM_USER}
+           --helm-token ${env.HELM_TOKEN}
+           --virtual-repo ${helm-chart-virtual-released-repo}
+           --dry-run ${env.DRY_RUN}
+           --skip-existing-version
+           --properties product_metadata=${structure-data-file-location}
+
+  # Create and push git tag. Example v1.0.0+55
+  create-pra-git-tag:
+    - task: git-tag
+      docker-image: adp-release-auto
+      docker-envs:
+        - GERRIT_USERNAME
+        - GERRIT_PASSWORD
+      cmd: version-handler create-git-tag
+           --tag v${var.released-version}
+           --message "PRA Release ${var.released-version}"
+           --git-repo-url ${git-clone-url}
+           --commitid ${env.RELEASE_CANDIDATE}
+           --dry-run ${env.DRY_RUN}
+
+  # Step version in VERSION_PREFIX (e.g. 1.0.0 -> 1.1.0)
+  increment-version-prefix:
+    - task: git-push-version-prefix-increment
+      docker-image: adp-release-auto
+      docker-envs:
+        - GERRIT_USERNAME
+        - GERRIT_PASSWORD
+      cmd: version-handler increment
+           --step-version-prefix ${env.VERSION_UPDATE}
+           --git-repo-url ${git-clone-url}
+           --branch ${env.BRANCH}
+           --dry-run ${env.DRY_RUN}
+           --email ${env.COMMITTER_EMAIL}
+
+  # Remove created/pulled microservice images
+  cleanup-images:
+    - task: remove-images
+      cmd:
+      - docker rmi --force ${image-drop-path}:${env.RELEASE_CANDIDATE} >/dev/null 2>&1
+      - docker rmi --force ${image-released-path} >/dev/null 2>&1

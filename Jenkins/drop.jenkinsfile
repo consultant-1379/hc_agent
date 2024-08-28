@@ -1,0 +1,127 @@
+pipeline {
+    agent {
+        node {
+            label '5G-SC'
+        }
+    }
+    options{
+        timeout(time: 15, unit: 'MINUTES')
+        timestamps()
+    }
+    stages {
+        stage('Prepare') {
+            steps {
+                checkout([$class: 'GitSCM',
+                                  branches: [
+                                             [name: 'origin/master']
+                                            ],
+                                  doGenerateSubmoduleConfigurations: false,
+                                  extensions: [
+                                               [$class: 'CleanBeforeCheckout'],
+                                               [$class: 'WipeWorkspace'],
+                                               [$class: 'SubmoduleOption',
+                                                            disableSubmodules: false,
+                                                            parentCredentials: true,
+                                                            recursiveSubmodules: true,
+                                                            reference: '',
+                                                            trackingSubmodules: false]
+                                              ],
+                                  submoduleCfg: [],
+                                  userRemoteConfigs: [
+                                                [url: 'ssh://eiffelesc@gerritmirror-direct.sero.gic.ericsson.se:29418/MC_5G/hc_agent']
+                                                ]
+                         ])
+            }
+        }
+        stage('Clean') {
+            steps {
+               sh './bob/bob clean'
+            }
+        }
+        stage('Init') {
+            steps {
+                sh './bob/bob init-drop'
+                archiveArtifacts 'artifact.properties'
+                script{
+                    // set displayed build name to "BUILD_NUMBER - VERSION"
+                    currentBuild.displayName = "#${BUILD_NUMBER}, ";
+                    currentBuild.displayName += readFile ".bob/var.version";
+                    // set displayed description to "NODE_NAME, VERSION"
+                    currentBuild.description = "${env.NODE_NAME}, ${env.GERRIT_CHANGE_OWNER_NAME}, ";
+                    currentBuild.description += readFile ".bob/var.version";
+                } //script
+            }
+        }
+        stage('Lint') {
+            steps {
+                parallel (
+                    "lint markdown": {
+                        sh './bob/bob lint:markdownlint'
+                    }, // lint markdown
+                    "lint helm": {
+                        sh './bob/bob lint:helm'
+                        sh './bob/bob lint:helm-chart-check'
+                    }, // lint helm
+                    "lint jenkins": {
+                        withCredentials([usernamePassword(credentialsId: 'eiffelesc-credentials', usernameVariable: 'GERRIT_USERNAME', passwordVariable: 'GERRIT_PASSWORD')]) {
+                            sh './bob/bob lint:jenkins-lint'
+                        } // withCredentials
+                    }, // lint jenkins
+                    "lint images": {
+                        sh './bob/bob lint:hadolint-scan-test'
+                    } // lint docker images
+                )
+            }
+        }
+        stage('Build source code') {
+            steps {
+               sh './bob/bob build'
+            }
+        }
+        stage('Build docker image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'eiffelesc-armseli-token-credentials', usernameVariable: 'ARM_USER', passwordVariable: 'ARM_LOGSTDOUT_TOKEN'),
+                                usernamePassword(credentialsId: 'eiffelesc-armsero-token-credentials', usernameVariable: 'HELM_USER', passwordVariable: 'HELM_TOKEN')]) {
+                    sh './bob/bob image'
+                }
+            }
+        }
+        stage('Parallel steps') {
+            parallel {
+                stage('K8S Tests') {
+                    stages {
+                        stage('Create Helm Package') {
+                            steps {
+                                withCredentials([usernamePassword(credentialsId: 'ekoteva-credentials', usernameVariable: 'GERRIT_USERNAME', passwordVariable: 'GERRIT_PASSWORD'),
+                                                 usernamePassword(credentialsId: 'eiffelesc-armsero-token-credentials', usernameVariable: 'HELM_USER', passwordVariable: 'HELM_TOKEN')]) {
+                                      sh './bob/bob package'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Publish Docker Image and Helm Chart') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'eiffelesc-credentials', usernameVariable: 'GERRIT_USERNAME', passwordVariable: 'GERRIT_PASSWORD'),
+                                 usernamePassword(credentialsId: 'eiffelesc-armsero-token-credentials', usernameVariable: 'HELM_USER', passwordVariable: 'HELM_TOKEN')])
+                {
+                    sh './bob/bob publish'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh './bob/bob cleanup-images'
+        }
+        failure {
+            script {
+                mail to: ${env.EMAIL_COMMITTER},
+                 subject: "Failed HCAgent Drop Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Failure on ${env.BUILD_URL}"
+            }
+        }
+    }
+}

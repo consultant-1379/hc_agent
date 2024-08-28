@@ -1,0 +1,337 @@
+[ {
+  "service-name" : "eric-bsf-diameter",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "eric-bsf-manager",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-bsf-worker",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "eric-cm-mediator",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "eric-cm-mediator-notifier",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-cm-yang-provider",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-cnom-server",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-document-database-pg-bragent",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-search-engine-ingest-tls",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-fh-alarm-handler",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "eric-fh-snmp-alarm-provider",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-lm-combined-server-license-consumer-handler",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "eric-lm-combined-server-license-server-client",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-log-transformer",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-pm-bulk-reporter",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sc-manager",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sc-slf",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sc-spr-fe",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 3
+}, {
+  "service-name" : "eric-scp-manager",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-scp-worker",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-admin-user-management",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-certm",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-ldap-server-proxy",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-sip-tls-main",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sepp-manager",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sepp-worker",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-stm-diameter",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-stm-diameter-cm",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-tm-ingress-controller-cr-contour",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-ctrl-bro",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-coordinator-zk",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 3,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-coordinator-zk-agent",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-distributed-coordinator-ed",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 3
+}, {
+  "service-name" : "eric-data-distributed-coordinator-ed-agent",
+  "highest-severity-reported" : "Major",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-distributed-coordinator-ed-sc",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 3
+}, {
+  "service-name" : "eric-data-document-database-pg",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-message-bus-kf",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 3
+}, {
+  "service-name" : "eric-data-search-engine-data",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-search-engine-master",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 3,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-wide-column-database-cd",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-pm-server",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-key-management",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sec-ldap-server",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "statefulset",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-search-engine-curator",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "cronjob",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-wide-column-database-cd-tls-restarter",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "cronjob",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-cm-mediator-key-init",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "job",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-wide-column-database-cd-configure-keyspaces",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "job",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-wide-column-database-cd-create-auth",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "job",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-document-database-pg-hook-cleanup",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "job",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-log-shipper",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "daemonset",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-tm-ingress-controller-cr-envoy",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "daemonset",
+  "minimum-replicas-required" : 0,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-odca-diagnostic-data-collector",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-odca-diagnostic-data-collector-manual",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-sc-rlf",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 2,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-key-value-database-rd",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "RedisCluster",
+  "minimum-replicas-required" : 3,
+  "high-availability-replicas-required" : 0
+}, {
+  "service-name" : "eric-data-key-value-database-rd",
+  "highest-severity-reported" : "Minor",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+} ]

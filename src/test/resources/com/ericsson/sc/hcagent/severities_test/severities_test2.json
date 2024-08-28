@@ -1,0 +1,13 @@
+[ {
+  "service-name" : "service3",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 2
+}, {
+  "service-name" : "service4",
+  "highest-severity-reported" : "Critical",
+  "replication-controller-type" : "deployment",
+  "minimum-replicas-required" : 1,
+  "high-availability-replicas-required" : 0
+} ]

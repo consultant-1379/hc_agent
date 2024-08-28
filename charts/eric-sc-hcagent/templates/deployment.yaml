@@ -1,0 +1,158 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "eric-sc-hcagent.name" . }}
+  labels:
+{{- include "eric-sc-hcagent.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-sc-hcagent.helm-annotations" . | indent 4 }}
+{{- include "eric-sc-hcagent.config-annotations" . | indent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: {{ .Values.updateStrategy.type | quote }}
+  selector:
+    matchLabels:
+      app: {{ template "eric-sc-hcagent.name" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "eric-sc-hcagent.pod.labels" . | nindent 8 }}
+      annotations:
+{{- include "eric-sc-hcagent.helm-annotations" . | indent 8 }}
+{{- include "eric-sc-hcagent.config-annotations" . | indent 8 }}
+    spec:
+      securityContext:
+        {{- if not (empty (include "eric-sc-hcagent.podSeccompProfile" .)) }}
+        {{ include "eric-sc-hcagent.podSeccompProfile" . | indent 8 }}
+        {{- end }}
+      serviceAccountName: {{ template "eric-sc-hcagent.name" . }}
+      {{- if include "eric-sc-hcagent.pullSecrets" . }}
+      imagePullSecrets:
+      - name: {{ template "eric-sc-hcagent.pullSecrets" . }}
+      {{- end }}
+      {{- if include "eric-sc-hcagent.nodeSelector" . }}
+      nodeSelector: 
+        {{ template "eric-sc-hcagent.nodeSelector" . }}
+      {{- end }}
+      {{- if .Values.spec.hcagent.tolerations }}
+      tolerations:
+{{ toYaml .Values.spec.hcagent.tolerations | indent 8 }}
+      {{- end }}
+      containers:
+      - name: hcagent
+        image: {{ template "eric-sc-hcagent.hcagent.registryUrl" . }}/{{ template "eric-sc-hcagent.hcagent.repoPath" . }}/{{ template "eric-sc-hcagent.hcagent.image" . }}:{{ template "eric-sc-hcagent.hcagent.tag" . }}
+        imagePullPolicy: {{ template "eric-sc-hcagent.hcagent.imagePullPolicy" . }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          privileged: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+              - ALL
+{{- include "eric-sc-hcagent.hcagent.seccompProfile" . | indent 10 }} 
+        env:
+          - name: ALARM_HANDLER_HOST
+            value: {{ .Values.adp.fh.alarmhandler.hostname | quote }}
+          - name: GLOBAL_TLS_ENABLED
+            value: {{ include "eric-sc-hcagent.tls" . | quote }}
+{{- if eq (include "eric-sc-hcagent.tls" .) "true" }}
+          - name: ALARM_HANDLER_PORT
+            value: {{ .Values.adp.fh.alarmhandler.tlsPort | quote }}
+          - name: ALARM_HANDLER_CLIENT_CERT_PATH
+            value: /run/secrets/alarmhandler/certificates
+          - name: SIP_TLS_TRUSTED_ROOT_CA_PATH
+            value: /run/secrets/siptls/ca
+{{- else }}
+          - name: ALARM_HANDLER_PORT
+            value: {{ .Values.adp.fh.alarmhandler.port | quote }}
+{{- end }}
+          - name: ALARM_EXPIRATION_TIMER
+            value: {{ .Values.export.alarmExpirationTimer | quote }}
+          - name: INITIAL_DELAY
+            value: {{ .Values.export.initialDelay | quote }}
+          - name: FAILED_POD_FAULT_NAME
+            value: {{ .Values.resourceChecker.podChecker.faultName | quote }}
+          - name: FAILED_POD_FAULT_RESOURCE
+            value: {{ .Values.resourceChecker.podChecker.resourceName | quote }}
+          - name: FAILED_POD_SERVICE_NAME
+            value: {{ .Values.resourceChecker.podChecker.serviceName | quote }}
+          - name: PENDING_PHASE_TIMEOUT
+            value: {{ .Values.export.pendingPhaseTimeout | quote }}
+          - name: JVM_PARAMS
+            value: {{ .Values.jvm.parameters.hcagent | quote }}
+          - name: NAMESPACE
+            value: {{ .Release.Namespace | quote }}
+          - name: TZ
+            value: {{ include "eric-sc-hcagent.timezone" . }}
+          - name: SERVICE_ID
+            value: {{ include "eric-sc-hcagent.name" . }}
+          - name: LOG_PATH
+            value: {{ .Values.logShipper.storage.path | quote }}
+          - name: CONTAINER_NAME
+            value: "hcagent"
+          - name: LOGBACK_FILENAME
+            value: {{ include "eric-sc-hcagent.logbackFileName" . | quote }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.hcagent.requests.cpu | quote }}
+            memory: {{ .Values.resources.hcagent.requests.memory | quote }}
+            {{- if index .Values.resources.hcagent.requests "ephemeral-storage" }}
+            ephemeral-storage: {{ index .Values.resources.hcagent.requests "ephemeral-storage" | quote }}
+            {{- end }}
+          limits:
+            cpu: {{ .Values.resources.hcagent.limits.cpu | quote }}
+            memory: {{ .Values.resources.hcagent.limits.memory | quote }}
+            {{- if index .Values.resources.hcagent.limits "ephemeral-storage" }}
+            ephemeral-storage: {{ index .Values.resources.hcagent.limits "ephemeral-storage" | quote }}
+            {{- end }}
+        volumeMounts:
+          - name: severities
+            mountPath: "/hcagent/config/severities"
+          - name: loglevel
+            mountPath: /hcagent/config/logcontrol
+          - name: vertx
+            mountPath: "/vertx"
+{{- if eq (include "eric-sc-hcagent.tls" .) "true" }}
+          - name: alarmhandler-client-certificate
+            mountPath: /run/secrets/alarmhandler/certificates
+            readOnly: true
+          - name: siptls-trusted-root-cacert
+            mountPath: /run/secrets/siptls/ca
+{{- end }}
+{{- if eq (include "eric-sc-hcagent.logshipper-enabled" . ) "true" }}
+      {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-mounts" . | indent 10 }}
+      {{- $logshipperImageDict := dict "logshipperSidecarImage" ((((.Values).global).logShipper).config).image -}}
+      {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-container" (mergeOverwrite . $logshipperImageDict ) | indent 6 }}
+{{- end }}
+      volumes:
+        - name: severities
+          projected:
+            sources:
+        {{- range .Values.severities.configmaps }}
+            - configMap:
+                name: "{{ . }}"
+        {{- end }}
+        - name: loglevel
+          configMap:
+            name: {{ template "eric-sc-hcagent.name" . }}-loglevel-config
+        - name: vertx
+          emptyDir: 
+            medium: Memory
+{{- if eq (include "eric-sc-hcagent.tls" .) "true" }}
+        - name: alarmhandler-client-certificate
+          secret:
+            secretName: {{ template "eric-sc-hcagent.name" . }}-alarmhandler-client-certificate
+            items:
+            - key: tls.crt
+              path: cert.pem
+            - key: tls.key
+              path: key.pem
+        - name: siptls-trusted-root-cacert
+          secret:
+            secretName: eric-sec-sip-tls-trusted-root-cert
+{{- end }}
+{{- if eq (include "eric-sc-hcagent.logshipper-enabled" .) "true" }}
+     {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-volumes" . | indent 8 }}
+{{- end }}

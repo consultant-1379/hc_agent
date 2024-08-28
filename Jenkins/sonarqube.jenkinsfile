@@ -1,0 +1,58 @@
+def emailbodyStart="Hi "+ "<br><br>Sonarqube static analysis results for branch : ${BRANCH} "
+def emailbodyMain="<br><br> Sonarqube analysis results <br> https://sonarqube.lmera.ericsson.se/dashboard?id=com.ericsson%3Aeric-sc-hcagent"
+def emailbodySuccess="<br><br> Sonarqube static analysis was successfull ! <br><br> "
+def emailbodyFail="<br><br> Sonarqube static analysis has been failed ! It needs troubleshooting actions ! <br><br>"
+def emailbodyEnd ="<br><br>BR,<br>Sonarqube analysis by Jenkins<br><br>"
+
+
+pipeline {
+    agent {
+        node {
+            label '5G-SC'
+        }
+    }
+    environment
+    {
+        BRANCH = "${env.BRANCH}"
+    }
+    options{
+        timeout(time: 15, unit: 'MINUTES')
+        timestamps()
+    }
+    stages{
+        stage('common init'){
+            steps {
+                sh 'printenv | sort'
+                sh 'git submodule update --init --recursive'
+                sh './bob/bob common-init'
+            }
+        }
+        stage('Scan source code'){
+            steps {
+                    sh 'ls -ltrh;'
+                    sh './bob/bob build'
+            }
+        }
+    }
+    post{
+
+        success {
+            echo "The scan analysis was completed successfully"
+            script {
+                emailext body: "${emailbodyStart}"+"${emailbodyMain}"+"${emailbodySuccess}"+"${emailbodyEnd}",
+                mimeType: 'text/html',
+                subject: "HC-Agent ${BRANCH} Sonarqube static analysis results",
+                to: "nikos.argyriou.ext@ericsson.com"
+            } 
+        } 
+
+        failure {
+            echo "Analysis failed. Troubleshooting needed."
+            script {
+                mail to: ${env.EMAIL_COMMITTER},
+                subject: "Sonarqube analysis on HC-Agent failed: ${currentBuild.fullDisplayName}",
+                body: "Failure on ${env.BUILD_URL}"
+            } 
+	    }
+    }
+}

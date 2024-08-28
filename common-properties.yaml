@@ -1,0 +1,145 @@
+modelVersion: 2.0
+
+var:
+  - released-version
+  - cbos-rstate
+
+env:
+  - USER (default=anonymous)
+  
+properties:
+  # Common docker images repo path
+  - docker-cicd-drop-repo: armdocker.rnd.ericsson.se/proj-adp-cicd-drop
+  # bob ADP release auto docker image
+  - adp-release-auto: ${docker-cicd-drop-repo}/bob-adp-release-auto:latest
+  # adp helm dr checker docker image
+  - adp-helm-dr-check: ${docker-cicd-drop-repo}/common-library-adp-helm-dr-check:latest
+  # adp image dr checker docker image
+  - image-dr-check: ${docker-cicd-drop-repo}/adp-image-dr-check:latest
+  # adp helm, kube client, python3 builder
+  - py3kubehelmbuilder: ${docker-cicd-drop-repo}/bob-py3kubehelmbuilder:latest
+  # Docker image registry
+  - image-registry: armdocker.rnd.ericsson.se
+  # Helm chart repository server
+  - helm-chart-repo-server: https://arm.sero.gic.ericsson.se/artifactory
+  # Helm chart drop repo path
+  - helm-chart-drop-repopath: proj-sc-hcagent-drop-helm
+  # YANG tool docker image
+  #- yang-tool: armdocker.rnd.ericsson.se/proj-adp-cicd-drop/yang-services:latest
+  # Microservice helm chart name
+  - helm-chart-name: eric-sc-hcagent
+  # The name of a docker image to pull and store in ARM in tar.gz format
+  - docker-image-name: eric-sc-hcagent
+  # The name of a docker initcontainer to pull and store in ARM in tar.gz format
+  # - docker-initcontainer-name: eric-ref-catfacts-text-analyzer-init
+  # Image drop repo path
+  - image-drop-repopath: proj-sc-hcagent-drop
+  # The name of the "microservice" folder in the CPI fragment repo
+  # - cpi-folder-name: eric-ref-catfacts-text-analyzer
+  # Configuration file for eridoc documents
+  # - eridoc-config: "ci_config/eridoc_config.yaml"
+  # Static information for PRI
+  # - pri-manual-input: "ci_config/pri_manual_input.json"
+  # Product extended name in JIRA
+  # - jira-component-name: "Bob"
+  # GERRIT repository URL
+  - gerrit-url: "https://gerrit.ericsson.se/a/plugins/gitiles/MC_5G/hc_agent"
+  # GIT clone URL
+  - git-clone-url: "https://gerrit-gamma.gic.ericsson.se/a/MC_5G/hc_agent.git"
+  # CAV product number
+  # - cav-product-number: CAV101061
+  # Eridoc folder ID for Product Revision Information (PRI)
+  # - eridoc-pri-folder-id: 0b004cffc4abdedd
+  # cbos name
+  - image-base-os-name: armdocker.rnd.ericsson.se/proj-ldc/common_base_os_micro/sles
+  # cbos version
+  - image-base-os-version: "6.14.0-10"
+  - image-base-os: ${image-base-os-name}:${image-base-os-version}
+  # cbos url to upload sc-sless cbo
+  - image-base-repo-url: https://arm.rnd.ki.sw.ericsson.se/artifactory/proj-ldc/common_base_os_micro/sles
+  - image-base-repo: ${image-base-repo-url}/${image-base-os-version}/
+  - image-base-os-sc-url: armdocker.rnd.ericsson.se
+  - image-base-os-sc-path: proj-5g-bsf
+  - image-base-os-sc-name: sc-sles
+  - image-base-os-sc: ${image-base-os-sc-url}/${image-base-os-sc-path}/${env.USER}/${image-base-os-sc-name}:${image-base-os-version}
+  # image for java
+  - image-base-java: java-11-openjdk-headless-11.0.17.0
+  # image for openssl
+  - image-base-openssl: openssl-1.1.1l-150400.1.5
+  # stdout redirect version
+  # - stdout-version: "1.9.1"
+  # image products CXC/CXU number
+  - image-product-number: "CXU 101 1658"
+  # init image products CXC/CXU number
+  # - init-image-product-number: "CXC 201 1996"
+  # APR product number
+  # - apr-product-number: "APR20130"
+  # Structure-data output directory
+  # - structure-output-dir: "build/structure-output"
+  # Name of the service
+  - service-name: "Health Check Agent"
+  # CAF 101 63 product version
+  # - caf-10163-product-version: "1.0.0"
+  # Microservice documents released repo url
+  # - doc-arm-repo: https://arm.sero.gic.ericsson.se/artifactory/proj-adp-ref-app-docs-released-generic-local 
+    # License Agreement JSON file name
+  # - license-agreement-file-name: license.agreement.json
+    # License Agreement JSON file path
+  # - license-agreement-file-path: ci_config/fragments/${license-agreement-file-name}
+    # License Agreement JSON file name
+  # - license-agreement-go-file-name: license.agreement.go.json
+    # License Agreement JSON file path
+  # - license-agreement-go-file-path: ci_config/fragments/${license-agreement-go-file-name}
+    # PM metrics JSON source file name
+  # - pm-metrics-source-file-name: pm-metrics.json
+    # PM metrics JSON source file path
+  # - pm-metrics-source-file-path: ci_config/fragments/${pm-metrics-source-file-name}
+    # PM metrics JSON destination file name
+  # - pm-metrics-dest-file-name: eric-ref-catfacts-text-analyzer_pm_metrics.json
+    # characteristics report JSON source file name
+  # - characteristics-report-source-file-name: characteristics-report.json
+    # characteristics report JSON source file path
+  # - characteristics-report-source-file-path: ci_config/fragments/${characteristics-report-source-file-name}
+    # characteristics report JSON destination file name
+  # - characteristics-report-dest-file-name: eric-ref-catfacts-text-analyzer_characteristics-report.json
+    # Service Ports JSON source file name
+  # - service-ports-source-file-name: service-ports.json
+    # Service Ports JSON source file path
+  # - service-ports-source-file-path: ci_config/fragments/${service-ports-source-file-name}
+    # Service Ports JSON destination file name
+  # - service-ports-dest-file-name: eric-ref-catfacts-text-analyzer_service_ports.json
+    # YANG modules output directory
+  # - yang-output-dir: "build/yang-output"
+    # YANG AC Instance Data Set name
+  # - yang-ac-instance-data-set-name: ericsson-catfacts-text-analyzer-yang-nacm
+    # YANG AC module file name
+  # - yang-ac-module-file-name: ${yang-ac-instance-data-set-name}.xml
+    # YANG AC module file path
+  # - yang-ac-module-file-path: ${yang-output-dir}/${yang-ac-module-file-name}
+    # YANG AC system-admin JSON source file name
+  # - yang-ac-system-admin-source-file-name: yang-nacm-system-admin.json
+    # YANG AC system-admin JSON source file path
+  # - yang-ac-system-admin-source-file-path: ci_config/fragments/${yang-ac-system-admin-source-file-name}
+    # YANG AC system-read-only JSON source file name
+  # - yang-ac-system-read-only-source-file-name: yang-nacm-system-read-only.json
+    # YANG AC system-read-only JSON source file path
+  # - yang-ac-system-read-only-source-file-path: ci_config/fragments/${yang-ac-system-read-only-source-file-name}
+    # YANG FM instance data file name
+  # - yang-fm-instance-data-set-name: ericsson-catfacts-text-analyzer-yang-fm-instance-data
+    # YANG FM module file name
+  # - yang-fm-module-file-name: ${yang-fm-instance-data-set-name}.xml
+    # YANG FM module file path
+  # - yang-fm-module-file-path: ${yang-output-dir}/${yang-fm-module-file-name}
+    # YANG FM JSON source file name
+  # - yang-fm-source-file-name: alarm-definition.json
+    # YANG FM JSON source file path
+  # - yang-fm-source-file-path: ci_config/fragments/${yang-fm-source-file-name}
+    # FOSS dependencies YAML file path
+  # - dependencies-file-path: ci_config/plms/dependencies.image.yaml
+  # - dependencies-go-file-path: ci_config/plms/dependencies.go.yaml
+
+rules:
+  # This rule will convert the CBOS image version to CBOS semver
+  init-cbos:
+    - task: cbos-semver
+      cmd: echo "${image-base-os-version}" | cut -d '-' -f 1 > .bob/var.cbos-semver

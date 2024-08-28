@@ -1,0 +1,74 @@
+no-fail: false # Make true to always return code 0; indicating process success; irrespective of the rule violations and failure-threshold
+no-color: false # Make true to disable colorized output
+format: json #Options [tty|json|checkstyle|codeclimate|gitlab_codeclimate|codacy]
+
+# List of registries to pull images from
+trustedRegistries:
+  - armdocker.rnd.ericsson.se
+  - arm.sero.gic.ericsson.se
+  - arm.epk.ericsson.se
+  - arm.seli.gic.ericsson.se
+
+# List of Rules to be Ignored
+ignored:
+# DL3026 is known false positive issue of Hadolint, refer to https://eteamspace.internal.ericsson.com/display/ACD/Hadolint
+  - DL3026
+
+# Override the severity of a rule
+override:
+  error:
+    - DL3001
+    - DL3002
+    - DL3003
+    - DL3005
+    - DL3006
+    - DL3007
+    - DL3010
+    - DL3013
+    - DL3014
+    - DL3015
+    - DL3016
+    - DL3019
+    - DL3022
+    - DL3025
+    - DL3029
+    - DL3034
+    - DL3035
+    - DL3036
+    - DL3042
+    - DL3045
+    - DL3046
+    - DL3047
+    - DL3048
+    - DL3049
+    - DL3050
+    - DL3051
+    - DL3052
+    - DL3053
+    - DL3054
+    - DL3055
+    - DL3056
+    - DL3057
+    - DL3058
+    - DL3059
+    - DL3060
+    - DL4001
+    - DL4003
+    - DL4005
+    - DL4006
+    - SC2046
+    - SC2086
+  # warning:
+    # - DL3042
+  # info:
+    # - DL3032
+  # style:
+    # - DL3015
+
+# Expected labels in the Dockerfile
+label-schema:
+  author: text
+  version: semver
+strict-labels: true # Warns of additional labels outside the schema. Make false to disable the warning.
+
+failure-threshold: error #Exit with code 1; indicating process failure; when rules with severity equal to or above threshold are violated. Options [error|warning|info|style|ignore|none]

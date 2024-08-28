@@ -1,0 +1,16 @@
+@startuml
+(Highest Severity\n configured in severities) -down-> (Critical or Major)
+(Highest Severity\n configured in severities) -down-> (Minor)
+(Highest Severity\n configured in severities) -down-> (Else-Warning)
+(Critical or Major) -down-> (Minimum Required\n configured?)
+(Minimum Required\n configured?) -down-> (Highest Available Required configured OR\n Available PODs less than\n the Highest Available Required?) : "No"
+(Highest Available Required configured OR\n Available PODs less than\n the Highest Available Required?) -down-> (Raise Highest Severity POD Failure Alarm) : "Yes"
+(Highest Available Required configured OR\n Available PODs less than\n the Highest Available Required?) -down-> (Raise previous Highest Severity POD Failure Alarm) : "No"
+(Minimum Required\n configured?) -down-> (Available PODs less than\n the Minimum Required) : "Yes"
+(Available PODs less than\n the Minimum Required) -down-> (Raise Highest Severity POD Failure Alarm) : "Yes"
+(Available PODs less than\n the Minimum Required) -down-> (Highest Available Required Configuration set to 0 OR\n Available PODs less than the Highest Available Required?) : "No"
+(Highest Available Required Configuration set to 0 OR\n Available PODs less than the Highest Available Required?) -down-> (Raise second previous Highest Severity POD Failure Alarm)
+(Highest Available Required Configuration set to 0 OR\n Available PODs less than the Highest Available Required?) -down-> (Raise previous Highest Severity POD Failure Alarm)
+(Minor) -down-> (Raise Minor POD Failure Alarm)
+(Else-Warning) -down-> (Raise Warning POD Failure Alarm)
+@enduml
